@@ -92,7 +92,7 @@ graph TD
         G4 -->|"JSON + PDF e-Challan Generator"| G5["Payment QR Code + ASTraM Event Payload"]
     end
     class L5 layer;
-    class G5 output;
+    class G5 output; 
 ```
 
 ---
@@ -257,5 +257,6 @@ For centralized cloud deployments, the e-challans are packaged into clean JSON f
 
 ## 📄 License and Usage
 Developed for the **Flipkart Gridlock Hackathon 2.0**. Intellectual Property belongs to the submission team. All rights reserved.
-#   T r a f f i c S e n t i n e l A I  
+#   T r a f f i c S e n t i n e l A I 
+ 
  
