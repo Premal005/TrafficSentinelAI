@@ -8,72 +8,54 @@ app_port: 7860
 pinned: false
 ---
 
-<div align="center">
-
 # 🚦 TrafficSentinel AI
 
-### Automated Traffic Violation Detection & Classification for Mixed Traffic Environments
-
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
-[![YOLOv11](https://img.shields.io/badge/YOLOv11-Ultralytics-00FFFF?style=flat)](https://ultralytics.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io)
-[![License](https://img.shields.io/badge/License-Proprietary-red?style=flat)](./LICENSE)
-[![Hackathon](https://img.shields.io/badge/Gridlock%20Hackathon%202.0-Winner%20🏆-FFD700?style=flat)](https://github.com/Premal005/TrafficSentinelAI)
-
-**🏆 Codebase — Gridlock Hackathon 2.0 (Flipkart × Bengaluru Traffic Police)**
-
-</div>
+## Automated Traffic Violation Detection & Classification for Mixed Traffic Environments
+**Winner's Codebase — Gridlock Hackathon 2.0 (Flipkart × Bengaluru Traffic Police)**
 
 ---
 
-## 📌 Overview
+## 📌 Executive Summary
 
-**TrafficSentinel AI** is a production-grade **Hierarchical Scene Understanding Pipeline (HSUP)** built for dense, heterogeneous Indian traffic environments. Unlike conventional flat object-detection approaches that run isolated classifiers and generate high false-positive rates in crowded scenes, TrafficSentinel AI models the road as a **directed spatial scene graph** — reasoning over structural relationships between entities before issuing any violation notice.
+TrafficSentinel AI is a state-of-the-art **Hierarchical Scene Understanding Pipeline (HSUP)** designed to detect, classify, and document traffic violations in dense, heterogeneous mixed traffic environments (such as Indian metro cities). 
 
-> **Example**: A helmet state is matched to a specific *rider*, who is then vertically aligned with a *motorcycle*, before a challan is generated. A pedestrian standing nearby is never falsely implicated.
-
-<div align="center">
-
-| Metric | Flat YOLO Baseline | **HSUP Pipeline** |
-|:---|:---:|:---:|
-| mAP @ 0.5 | 71.2% | **89.2%** |
-| Helmet F1 | 74.1% | **92.4%** |
-| Seatbelt F1 | 68.3% | **89.7%** |
-| Triple Riding F1 | 12.0% | **91.6%** |
-| Red Light F1 | 21.0% | **90.2%** |
-| Wrong-Side F1 | ❌ Unsupported | **88.5%** |
-| Low-Light Accuracy | 38.4% | **84.2%** |
-| False-Alarm Rate | 18.6% | **3.1%** |
-
-</div>
+Unlike traditional flat object-detection pipelines that run isolated classifiers (which fail in crowded conditions, leading to false-positives on nearby pedestrians), TrafficSentinel AI models the road scene as a **directed spatial scene graph**. By reasoning over structural relationships (e.g., matching a helmet state to a rider, who is then vertically aligned with a motorcycle), our system achieves an **89.2% F1-score** and minimizes the false alarm rate to a mere **3.1%**.
 
 ---
 
 ## 🗺️ System Architecture
 
-The pipeline is structured into **5 modular computational layers**, each with a distinct responsibility — from raw frame ingestion to legal-grade e-challan generation.
+TrafficSentinel AI is structured into 5 distinct computational layers, ensuring a modular separation of concerns from raw ingestion to legal-grade evidence compilation.
 
 ```mermaid
 graph TD
+    %% Styling
+    classDef default fill:#1a1c1e,stroke:#4f5d75,color:#ffffff,stroke-width:1px;
     classDef layer fill:#0d3b66,stroke:#05668d,color:#ffffff,stroke-width:2px;
+    classDef process fill:#2b2d42,stroke:#8d99ae,color:#ffffff,stroke-width:1px;
     classDef output fill:#2a9d8f,stroke:#264653,color:#ffffff,stroke-width:2px;
+    
+    %% Input Node
+    Input["BGR Traffic Stream / CCTV Frame"] --> L1
 
-    Input["📷 BGR Traffic Stream / CCTV Frame"] --> L1
-
-    subgraph L1 ["Layer 1 · Adaptive Scene Conditioning"]
-        B1{"Degradation\nClassifier"} -->|LOW_LIGHT| C1["Gamma (γ=0.40) + CLAHE"]
-        B1 -->|RAIN / HAZE| C2["Guided Filter Dehazing"]
-        B1 -->|BLUR| C3["Laplacian Edge Sharpening"]
-        B1 -->|GLARE| C4["Flare Attenuation"]
-        B1 -->|CLEAR| C5["Bypass"]
+    %% Layer 1
+    subgraph L1 ["Layer 1: Adaptive Scene Conditioning"]
+        direction TB
+        B1{"Degradation Classifier"} -->|"LOW_LIGHT"| C1["Gamma Correction (γ=0.40) + CLAHE (clip=3.0)"]
+        B1 -->|"RAIN / DEHASE"| C2["Guided Filter Dehazing"]
+        B1 -->|"BLUR"| C3["Laplacian Edge Sharpening"]
+        B1 -->|"GLARE"| C4["Flare Attenuation & Contrast Stretching"]
+        B1 -->|"CLEAR"| C5["Bypass Preprocessing"]
     end
     class L1 layer;
 
     C1 & C2 & C3 & C4 & C5 --> L2
 
-    subgraph L2 ["Layer 2 · Multi-Scale Detection & Tracking"]
-        D1["YOLOv11m + SAHI Sliced Inference"] --> D2["BoT-SORT Temporal Tracker"]
-        D1 --> D3["Lazy-Loaded Sub-Models"]
+    %% Layer 2
+    subgraph L2 ["Layer 2: Multi-Scale Entity Detection & Tracking"]
+        direction TB
+        D1["YOLOv11m + SAHI Sliced Inference"] --> D2["BoT-SORT Tracker (Temporal Trajectories)"]
+        D1 --> D3["Lazy-Loaded YOLOv11s Sub-Models"]
         D3 --> D3_1["Helmet Classifier"]
         D3 --> D3_2["License Plate Localizer"]
     end
@@ -81,218 +63,209 @@ graph TD
 
     D2 & D3_1 & D3_2 --> L3
 
-    subgraph L3 ["Layer 3 · Relational Scene Graph (NetworkX)"]
-        E1["G = (V, E)"]
-        E1 --> E2["Nodes: Vehicles · Persons · Helmets · Plates"]
-        E1 --> E3["Edges: RIDES · DRIVES · WEARS · NOT_WEARS · HAS_PLATE"]
-        E3 -->|RIDES| E3_1["IoU ≥ 0.15 + Person.y < Vehicle.y"]
-        E3 -->|WEARS| E3_2["Helmet overlap ≥ 50% in Head Crop"]
-        E3 -->|DRIVES| E3_3["Driver BBox overlap ≥ 50% in Car BBox"]
+    %% Layer 3
+    subgraph L3 ["Layer 3: Relational Scene Graph Construction"]
+        direction TB
+        E1["NetworkX Directed Scene Graph G = (V, E)"]
+        E1 --> E2["Nodes (V): Vehicles, Persons, Helmets, Plates, Infrastructure"]
+        E1 --> E3["Edges (E): RIDES, DRIVES, WEARS, NOT_WEARS, HAS_PLATE"]
+        E3 -->|"RIDES Heuristic"| E3_1["IoU >= 0.15 + Person Center Y < Vehicle Center Y"]
+        E3 -->|"WEARS Heuristic"| E3_2["Overlap >= 0.50 of Helmet BBox inside Rider Head Crop"]
+        E3 -->|"DRIVES Heuristic"| E3_3["Overlap >= 0.50 of Driver BBox inside Car/Auto BBox"]
     end
     class L3 layer;
 
     E2 & E3_1 & E3_2 & E3_3 --> L4
 
-    subgraph L4 ["Layer 4 · Violation Reasoning Engine"]
-        F1["Registry Coordinator"] --> F2["🪖 Helmet"]
-        F1 --> F3["🪑 Seatbelt"]
-        F1 --> F4["👥 Triple Riding"]
-        F1 --> F5["↩️ Wrong-Side"]
-        F1 --> F6["🛑 Stop-Line"]
-        F1 --> F7["🔴 Red-Light"]
-        F1 --> F8["🚫 Illegal Parking"]
-        F1 --> F9["🔖 Missing Plate / HSRP"]
+    %% Layer 4
+    subgraph L4 ["Layer 4: Violation Reasoning Engine"]
+        direction TB
+        F1["Violation Registry Coordinator"] --> F2["Helmet Expert"]
+        F1 --> F3["Seatbelt Expert"]
+        F1 --> F4["Triple Riding Expert"]
+        F1 --> F5["Wrong-Side Expert"]
+        F1 --> F6["Stop-Line Expert"]
+        F1 --> F7["Red-Light Expert"]
+        F1 --> F8["Illegal Parking Expert"]
+        F1 --> F9["Missing Plate / HSRP Expert"]
     end
     class L4 layer;
 
     F2 & F3 & F4 & F5 & F6 & F7 & F8 & F9 --> L5
 
-    subgraph L5 ["Layer 5 · Legal-Grade Evidence Generation"]
-        G1["Plate Crop (2.5× + Bilateral + CLAHE)"] --> G2["EasyOCR"]
-        G2 -->|conf < 0.35 pruned| G3["Segment Filtering"]
-        G3 --> G4["IndianPlateValidator (position-aware corrections)"]
-        G4 --> G5["📄 JSON + PDF e-Challan + QR Code + ASTraM Payload"]
+    %% Layer 5
+    subgraph L5 ["Layer 5: Legal-Grade Evidence Generation"]
+        direction TB
+        G1["Plate Crop Preprocessing"] -->|"1. Scale 2.5x + Bilateral Filter + CLAHE"| G2["EasyOCR Engine"]
+        G2 -->|"Pruning Threshold < 0.35"| G3["Segment Filtering & Concatenation"]
+        G3 -->|"IndianPlateValidator"| G4["Position-Aware Character Correction (e.g. O->0)"]
+        G4 -->|"JSON + PDF e-Challan Generator"| G5["Payment QR Code + ASTraM Event Payload"]
     end
     class L5 layer;
-    class G5 output;
+    class G5 output; 
 ```
 
 ---
 
-## 🇮🇳 India-Specific Optimizations
+## 🛠️ India-Specific Specializations & Core Optimizations
 
-Standard vision pipelines fail in Indian conditions due to high vehicle density, non-lane discipline, and diverse vehicle classes. TrafficSentinel AI addresses this with six targeted engineering solutions:
+Standard vision pipelines fail in India due to high density, non-lane discipline, and diverse vehicle classes. TrafficSentinel AI incorporates the following custom extensions:
 
-<details>
-<summary><b>1. Spatial Pedestrian/Rider Disambiguation (False-Positive Protection)</b></summary>
+### 1. Spatial Pedestrian/Rider Disambiguation (False-Positive Protection)
+* **Problem**: Pedestrians crossing near stopped motorcycles get falsely associated as riders, triggering false "no-helmet" challans.
+* **Solution**: Layer 3 enforces vertical alignment and overlap heuristics ($\text{IoU} \ge 0.15$, person center above vehicle center). For four-wheelers, the driver bounding box must overlap with the vehicle bounding box by $\ge 0.50$ (calculated dynamically relative to the vehicle area), ignoring nearby pedestrians.
 
-**Problem**: Pedestrians crossing near stopped motorcycles get falsely flagged as helmetless riders.
+### 2. Multi-Stage License Plate OCR with Denoised Crop Fallbacks
+* **Problem**: EasyOCR often fails on dirty, warped, or low-contrast Indian plates, or mistakenly concatenates low-confidence background letters (like `'TC'`).
+* **Solution**:
+  1. **Crop Upscaling & Denoising**: Crops are upscaled $2.5\times$ using bicubic interpolation, followed by CLAHE contrast stretching and bilateral filtering to remove noise while keeping characters sharp.
+  2. **Multi-Stage Fallback**: If the denoised crop fails to yield OCR text, the system falls back to the **original raw crop**, and then to an **adaptive thresholding + morphological closing** stage.
+  3. **Pruning & Cleaning**: Individual text segments with confidence $< 0.35$ are discarded before concatenation.
+  4. **Validation**: The raw text runs through `IndianPlateValidator`, which applies position-aware corrections (e.g., converting alpha `'O'` to numeric `'0'` at the end of the plate) and verifies the format against a full state-wise registration lookup.
 
-**Solution**: Layer 3 enforces vertical alignment and overlap heuristics — `IoU ≥ 0.15` and person centroid must be above vehicle centroid. For four-wheelers, the driver bounding box must overlap the vehicle by `≥ 50%` (computed dynamically relative to vehicle area), ignoring nearby pedestrians entirely.
-</details>
+### 3. Triple Riding & Auto-Rickshaw Occupancy Check
+* **Problem**: Triple riding is a critical violation on Indian two-wheelers, while auto-rickshaws have open cabins with mixed passenger counts.
+* **Solution**: The pipeline queries the scene graph for two-wheelers with $\ge 3$ `RIDES` edges, flagging them instantly.
 
-<details>
-<summary><b>2. Multi-Stage License Plate OCR with Denoised Crop Fallbacks</b></summary>
+### 4. Session-State Persistent Sequential Notice IDs
+* **Problem**: Streamlit's page rerun model frequently re-imports modules and resets normal global python counters, causing notice IDs to duplicate and mix up in the Evidence Viewer.
+* **Solution**: The pipeline utilizes Streamlit's `st.session_state` to store and increment the global counter. This guarantees unique, sequential notice IDs across page navigation, hot reloads, and multi-file processing runs.
 
-**Problem**: EasyOCR fails on dirty, warped, or low-contrast Indian plates, or spuriously concatenates background characters.
+### 5. Same-Frame Slider Adjustments & Overwrite Optimization
+* **Problem**: Adjusting sliders/parameters for the same image frame generates new notice IDs, leading to folder bloat and cluttering the database.
+* **Solution**: The engine detects when the same frame is reprocessed (comparing image hashes) and overwrites the existing record and folder rather than incrementing the counter, keeping the database lean and clean.
 
-**Solution**:
-1. Plate crops are upscaled `2.5×` (bicubic), then passed through bilateral filtering + CLAHE
-2. On OCR failure, the system falls back to the raw crop, then to adaptive thresholding + morphological closing
-3. Segments with confidence `< 0.35` are pruned before concatenation
-4. `IndianPlateValidator` applies position-aware character corrections (e.g. alpha `O` → numeric `0` at plate end) and validates against a full state-wise RTO lookup
-</details>
-
-<details>
-<summary><b>3. Triple Riding & Auto-Rickshaw Occupancy Check</b></summary>
-
-**Problem**: Triple riding is a common violation in India; auto-rickshaws have open cabins complicating occupancy estimation.
-
-**Solution**: The scene graph is queried for two-wheelers with `≥ 3` outgoing `RIDES` edges, enabling instant detection without any additional classifier.
-</details>
-
-<details>
-<summary><b>4. Session-State Persistent Notice IDs (Streamlit)</b></summary>
-
-**Problem**: Streamlit's re-run model resets Python globals, causing duplicate or mixed-up notice IDs in the Evidence Viewer.
-
-**Solution**: Notice counters are stored in `st.session_state`, guaranteeing sequential uniqueness across page navigation, hot reloads, and multi-file processing runs.
-</details>
-
-<details>
-<summary><b>5. Same-Frame Overwrite Optimization</b></summary>
-
-**Problem**: Adjusting processing sliders for the same image frame creates new notice IDs, causing folder bloat.
-
-**Solution**: The engine hashes each incoming frame. Reprocessing the same frame overwrites the existing record and folder instead of incrementing the counter, keeping the database clean.
-</details>
-
-<details>
-<summary><b>6. One-Click UI Model Downloader</b></summary>
-
-**Problem**: Model weights are too large for zip submission packages, causing manual setup failures.
-
-**Solution**: If weights are absent at startup, the sidebar auto-detects this and shows a `📥 Download Weights from HF` button, pulling all weights from Hugging Face with a progress indicator.
-</details>
+### 6. One-Click UI Model Downloader
+* **Problem**: Model weights are too heavy for standard hackathon zip packages, leading to manual setup errors.
+* **Solution**: The dashboard implements a self-healing sidebar. If weights are missing, a prominent download button pulls them programmatically from Hugging Face with progress tracking and refreshes the system.
 
 ---
 
 ## 📂 Project Structure
 
 ```
-TrafficSentinelAI/
-├── app.py                            # Streamlit Dashboard entry point
-├── run_dashboard.bat                 # Windows launcher
-├── requirements.txt
+flipkart2r/
+├── app.py                         # Streamlit Dashboard main entrance
+├── run_dashboard.bat              # Batch file to launch Streamlit on Windows
+├── requirements.txt               # Main Python dependencies
+├── zip_project.py                 # Clean packaging script (< 50MB compliance)
 │
 ├── config/
-│   ├── settings.py                   # Global thresholds, enums, paths
-│   └── indian_vehicle_taxonomy.py    # RTO codes & plate format definitions
+│   ├── settings.py                # Global thresholds, enums, paths
+│   └── indian_vehicle_taxonomy.py # Indian RTO codes & plate formats
 │
 ├── core/
-│   ├── scene_conditioner.py          # Layer 1 — Image enhancement
-│   ├── entity_detector.py            # Layer 2 — YOLOv11 + SAHI inference
-│   ├── multi_tracker.py              # Layer 2 — BoT-SORT tracking
-│   ├── scene_graph.py                # Layer 3 — Spatial graph construction
-│   ├── violation_engine.py           # Layer 4 — Expert coordinator
-│   ├── plate_recognizer.py           # Layer 5 — OCR + fallback pipeline
-│   └── evidence_generator.py         # Layer 5 — e-Challan + QR generation
+│   ├── scene_conditioner.py       # Layer 1: Image enhancement & sharpening
+│   ├── entity_detector.py         # Layer 2: YOLOv11 & SAHI inference
+│   ├── multi_tracker.py           # Layer 2: BoT-SORT multi-object tracker
+│   ├── scene_graph.py             # Layer 3: Relational Spatial Graph constructor
+│   ├── violation_engine.py        # Layer 4: Expert coordinator & violation records
+│   ├── plate_recognizer.py        # Layer 5: EasyOCR processing & crop fallback
+│   └── evidence_generator.py      # Layer 5: e-Challan compiling & QR generation
 │
-├── violations/                       # Layer 4 — Expert Registry (auto-loaded)
-│   ├── base.py
-│   ├── helmet.py
-│   ├── seatbelt.py
-│   ├── triple_riding.py
-│   ├── wrong_side.py
-│   ├── stop_line.py
-│   ├── red_light.py
-│   ├── illegal_parking.py
-│   └── missing_plate.py
+├── violations/                    # Layer 4 Violation Experts (Registry Pattern)
+│   ├── __init__.py                # Automatic registry loader
+│   ├── base.py                    # Base class interface
+│   ├── helmet.py                  # Helmet compliance expert
+│   ├── seatbelt.py                # Seatbelt compliance expert
+│   ├── triple_riding.py           # Triple riding expert
+│   ├── wrong_side.py              # Wrong-side driving expert
+│   ├── stop_line.py               # Stop line traversal expert
+│   ├── red_light.py               # Traffic signal violation expert
+│   ├── illegal_parking.py         # Illegal temporal stationing expert
+│   └── missing_plate.py           # Missing/unreadable license plate expert
 │
 ├── utils/
-│   ├── visualization.py              # Overlay drawing & bounding box styling
-│   ├── indian_plate_validator.py     # Regex validator & character mapper
-│   └── metrics.py
+│   ├── visualization.py           # Overlay drawing & bounding box styling
+│   ├── indian_plate_validator.py  # Regex validator and character mapper
+│   └── metrics.py                 # Metric computation utilities
 │
 ├── data/
-│   ├── test_violations/              # Validation images (front-view, high-fidelity)
-│   └── database/                     # SQLite evidence store
+│   ├── test_violations/           # Front-view high-fidelity validation images
+│   └── database/                  # SQLite storage for evidence
 │
 ├── models/
-│   └── download_models.py            # Automated HF weight downloader
+│   └── download_models.py         # Automated downloader for YOLO weights
 │
 └── docs/
-    ├── architecture.md
-    ├── HSUP_whitepaper.md
-    ├── deployment_guide.md
-    └── presentation_deck.md
+    ├── architecture.md            # Detailed structural documentation
+    ├── HSUP_whitepaper.md         # Research draft of the HSUP pipeline
+    ├── deployment_guide.md        # Edge and docker deployment guide
+    └── presentation_deck.md       # PPT deck structure and speaker notes
 ```
 
 ---
 
-## ⚡ Quickstart
+## ⚡ Setup & Execution
 
-### 1. Clone & Install
-
+### 1. Clone & Environment Setup
+Ensure you have Python 3.10+ installed. In your terminal:
 ```bash
-git clone https://github.com/Premal005/TrafficSentinelAI.git
-cd TrafficSentinelAI
-
+# Create and activate virtual environment
 python -m venv .venv
-source .venv/bin/activate        # Linux / macOS
-.venv\Scripts\activate           # Windows
+.venv\Scripts\activate   # On Windows
+source .venv/bin/activate # On Unix/macOS
 
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Download Model Weights
+### 2. Download Model Weights (If Using Zip Submission)
+* **GitHub Checkout**: If you cloned this repository directly from GitHub, all model weights and training datasets are pre-included and ready to go.
+* **Zip Submission Package**: Because model weight files are large, they are excluded from the `submission.zip` package to comply with the 50 MB size limit. To retrieve them:
+  1. **One-Click UI Downloader (Recommended)**: Simply launch the Streamlit app. The sidebar will automatically detect missing weights and display a button: **`📥 Download Weights from HF`**. Clicking this will download and load everything automatically!
+  2. **Command Line Downloader**: Alternatively, run the following scripts:
+     * Download general weights: `python models/download_models.py --all`
+     * Download fine-tuned weights: `python models/download_hf_models.py`
 
-> **GitHub clone**: weights are already included.  
-> **Zip submission**: weights are excluded to comply with the 50 MB limit. Use one of:
-
-```bash
-# Option A — Automated (recommended): launch the app and click the sidebar button
-streamlit run app.py
-
-# Option B — CLI
-python models/download_models.py --all
-python models/download_hf_models.py
-```
-
-### 3. Run Tests
-
+### 3. Run Integration Tests
+Verify that all 5 layers are integrated properly and that the edge heuristics function correctly:
 ```bash
 python tests/test_pipeline.py
 ```
 
-### 4. Launch Dashboard
-
+### 4. Run the Streamlit Dashboard
+Launch the **Traffic Command Center Dashboard** to inspect live streams, trigger violations, and generate e-challans:
 ```bash
 streamlit run app.py
-# or on Windows: double-click run_dashboard.bat
 ```
+*(Or double-click `run_dashboard.bat` on Windows)*
 
 ---
 
-## 🚀 Deployment
+## 📊 System Benchmarks
 
-### Edge — NVIDIA Jetson AGX Orin (TensorRT FP16)
+Empirical evaluations conducted on mixed Indian traffic datasets demonstrate the significant advantages of the HSUP scene-graph reasoning model over flat baseline classifiers:
 
+| Metric | Flat YOLO Baseline | HSUP Pipeline | Relative Difference |
+| :--- | :---: | :---: | :---: |
+| **mAP @ 0.5** | 71.2% | **89.2%** | **+18.0%** |
+| **Helmet F1-Score** | 74.1% | **92.4%** | **+18.3%** |
+| **Seatbelt F1-Score** | 68.3% | **89.7%** | **+21.4%** |
+| **Triple Riding F1-Score** | 12.0% | **91.6%** | **+79.6%** |
+| **Red Light F1-Score** | 21.0% | **90.2%** | **+69.2%** |
+| **Wrong-Side F1-Score** | 0.0% (Unsupported) | **88.5%** | **Supported** |
+| **Low-Light Detection Accuracy** | 38.4% | **84.2%** | **+45.8%** |
+| **False-Alarm Rate** | 18.6% | **3.1%** | **-15.5%** |
+
+---
+
+## 🚀 Deployment Specifications
+
+### Edge Devices (NVIDIA Jetson AGX Orin)
+To run the system in real-time on edge junctions, compile the PyTorch weights to **NVIDIA TensorRT FP16**:
 ```bash
 yolo export model=models/yolo11m.pt format=engine device=0 half=True
 ```
+* **Latency (FP16 Engine)**: $25.7\text{ ms}$ (Total pipeline end-to-end)
+* **Throughput**: $38.9\text{ FPS}$ on a single CCTV feed.
 
-| Metric | Value |
-|:---|:---:|
-| End-to-end latency | **25.7 ms** |
-| Throughput (single feed) | **38.9 FPS** |
-
-### Cloud — ASTraM / Kafka Event Bus
-
-e-Challans are serialized to JSON (with base64 crop images) and published to a Kafka topic, decoupling compute nodes from storage and notification services. The architecture scales horizontally to **1,000+ simultaneous CCTV feeds**.
+### Cloud Integration (ASTraM & Event Bus)
+For centralized cloud deployments, the e-challans are packaged into clean JSON files containing base64 crop images and posted to a **Kafka Event Bus**. This isolates the compute nodes from the database/notification services and ensures the system can scale to over 1,000+ simultaneous CCTV feeds.
 
 ---
 
-## 📄 License
+## 📄 License and Usage
+Developed for the **Flipkart Gridlock Hackathon 2.0**. Intellectual Property belongs to the submission team. All rights reserved.
+# TrafficSentinelAI
 
-Developed for **Flipkart Gridlock Hackathon 2.0**. All intellectual property belongs to the submission team. All rights reserved.
