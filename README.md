@@ -8,7 +8,7 @@
 [![YOLOv11](https://img.shields.io/badge/YOLOv11-Ultralytics-00FFFF?style=flat)](https://ultralytics.com)
 [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://streamlit.io)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=flat)](./LICENSE)
-[![Hackathon]](https://github.com/Premal005/TrafficSentinelAI)
+[![Hackathon](https://img.shields.io/badge/Gridlock%20Hackathon%202.0-Winner%20🏆-FFD700?style=flat)](https://github.com/Premal005/TrafficSentinelAI)
 
 **🏆Codebase — Gridlock Hackathon 2.0 (Flipkart × Bengaluru Traffic Police)**
 
