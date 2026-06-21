@@ -35,6 +35,7 @@ INCLUDE_FILES = [
     "__init__.py",
     "data/eval_results.json",
     "models/weights/custom_helmet_classifier.pth",
+    "packages.txt",
 ]
 
 # Patterns or paths to explicitly exclude
