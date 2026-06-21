@@ -67,6 +67,9 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copy source code
 COPY . .
 
+# Download custom model weights (since they are git-ignored)
+RUN python3 models/download_hf_models.py
+
 # Expose Streamlit dashboard port
 EXPOSE 8501
 

@@ -342,6 +342,23 @@ def render_sidebar():
         </div>
         """, unsafe_allow_html=True)
         
+        # Add model downloader button if weights are missing
+        if not _helmet_ok or not _plate_ok:
+            st.warning("⚠️ Fine-tuned models are missing.")
+            if st.button("📥 Download Weights from HF"):
+                with st.spinner("Downloading models from Hugging Face..."):
+                    try:
+                        from models.download_hf_models import download_helmet_model, download_plate_model
+                        h_ok = download_helmet_model()
+                        p_ok = download_plate_model()
+                        if h_ok and p_ok:
+                            st.success("Weights downloaded! Reloading...")
+                            st.rerun()
+                        else:
+                            st.error("Download failed. Check terminal logs.")
+                    except Exception as e:
+                        st.error(f"Error starting download: {e}")
+        
         st.divider()
         
         # Pipeline Architecture
