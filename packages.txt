@@ -1,2 +1,1 @@
-libgl1
-libglib2.0-0
+# No apt packages needed since we use opencv-python-headless

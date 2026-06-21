@@ -1,7 +1,7 @@
 # Core dependencies
 ultralytics>=8.3.0          # YOLOv11 detection + tracking
 sahi>=0.11.18               # Slicing Aided Hyper Inference for small objects
-opencv-python>=4.9.0        # Image processing
+opencv-python-headless>=4.9.0 # Image processing
 numpy>=1.24.0               # Numerical computing
 Pillow>=10.0.0              # Image I/O
 
