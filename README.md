@@ -1,3 +1,13 @@
+---
+title: TrafficSentinelAI
+emoji: 🚦
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 <div align="center">
 
 # 🚦 TrafficSentinel AI
@@ -10,7 +20,7 @@
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=flat)](./LICENSE)
 [![Hackathon](https://img.shields.io/badge/Gridlock%20Hackathon%202.0-Winner%20🏆-FFD700?style=flat)](https://github.com/Premal005/TrafficSentinelAI)
 
-**🏆Codebase — Gridlock Hackathon 2.0 (Flipkart × Bengaluru Traffic Police)**
+**🏆 Codebase — Gridlock Hackathon 2.0 (Flipkart × Bengaluru Traffic Police)**
 
 </div>
 
