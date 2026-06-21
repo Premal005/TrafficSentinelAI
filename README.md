@@ -267,5 +267,4 @@ For centralized cloud deployments, the e-challans are packaged into clean JSON f
 
 ## 📄 License and Usage
 Developed for the **Flipkart Gridlock Hackathon 2.0**. Intellectual Property belongs to the submission team. All rights reserved.
-# TrafficSentinelAI
-
+#
