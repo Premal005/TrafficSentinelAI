@@ -298,10 +298,30 @@ class Settings:
     dashboard_icon: str = "🚦"
     
     def __post_init__(self):
-        """Ensure directories exist."""
+        """Ensure directories exist and adjust configs for low-memory environments."""
         self.models_dir.mkdir(parents=True, exist_ok=True)
         self.evidence_dir.mkdir(parents=True, exist_ok=True)
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Detect low memory (Render Free Tier has 512MB, Streamlit Cloud has ~1GB)
+        is_low_mem = False
+        if os.environ.get("RENDER") or os.environ.get("PORT"):
+            is_low_mem = True
+        try:
+            with open("/proc/meminfo", "r") as f:
+                for line in f:
+                    if "MemTotal" in line:
+                        kb = int(line.split()[1])
+                        if kb < 1.5 * 1024 * 1024:  # Less than 1.5 GB total RAM
+                            is_low_mem = True
+        except Exception:
+            pass
+            
+        if is_low_mem:
+            import logging
+            logging.getLogger(__name__).info("Low-memory environment detected. Switching vehicle detector to YOLOv11n (Nano) to prevent OOM hang.")
+            self.vehicle_detector.weights_path = "yolo11n.pt"
+            self.vehicle_detector.confidence_threshold = 0.25  # slightly higher for nano model
     
     def get_model_path(self, model_config: ModelConfig) -> Path:
         """Get full path for a model, checking models_dir first with yolov8s fallback."""

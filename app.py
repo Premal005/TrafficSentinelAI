@@ -301,7 +301,11 @@ def render_sidebar():
         # System Status — Real-time model file checks
         st.markdown("### ⚙️ System Status")
         
-        _vehicle_ok = (PROJECT_ROOT / "yolo11m.pt").exists() or (PROJECT_ROOT / "models" / "weights" / "yolo11m.pt").exists()
+        from config.settings import SETTINGS
+        _v_name = SETTINGS.vehicle_detector.weights_path
+        _vehicle_ok = (PROJECT_ROOT / _v_name).exists() or (PROJECT_ROOT / "models" / "weights" / _v_name).exists() or _v_name == "yolo11n.pt"
+        _vehicle_label = _v_name.replace(".pt", "").replace("yolov", "YOLOv").replace("yolo", "YOLOv").upper()
+        
         _helmet_11 = (PROJECT_ROOT / "models" / "weights" / "yolo11s_helmet.pt").exists()
         _helmet_8 = (PROJECT_ROOT / "models" / "weights" / "yolov8s_helmet.pt").exists()
         _helmet_ok = _helmet_11 or _helmet_8
@@ -325,7 +329,7 @@ def render_sidebar():
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span style="color: rgba(255,255,255,0.6); font-size: 13px;">Detection</span>
-                {_status(_vehicle_ok, "YOLOv11m")}
+                {_status(_vehicle_ok, _vehicle_label)}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span style="color: rgba(255,255,255,0.6); font-size: 13px;">Helmet</span>

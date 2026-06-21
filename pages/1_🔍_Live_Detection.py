@@ -315,6 +315,17 @@ def group_violations_by_vehicle(violations, scene_graph):
     return grouped
 
 
+@st.cache_resource
+def load_pipeline_modules():
+    # Instantiate modules
+    conditioner = SceneConditioner(SETTINGS)
+    detector = EntityDetector(SETTINGS)
+    violation_engine = ViolationEngine(SETTINGS)
+    plate_recognizer = PlateRecognizer(SETTINGS)
+    evidence_generator = EvidenceGenerator(SETTINGS)
+    return conditioner, detector, violation_engine, plate_recognizer, evidence_generator
+
+
 def process_image(image_bytes, sample_option="-- None --"):
     """Execute full 5-layer HSUP pipeline on the uploaded image."""
     # Convert uploaded image to BGR numpy array
@@ -338,13 +349,9 @@ def process_image(image_bytes, sample_option="-- None --"):
 
     st.info("Pipeline Status: Initialising core modules...")
     
-    # Instantiate modules
-    conditioner = SceneConditioner(SETTINGS)
-    detector = EntityDetector(SETTINGS)
+    # Retrieve cached modules
+    conditioner, detector, violation_engine, plate_recognizer, evidence_generator = load_pipeline_modules()
     scene_graph_builder = SceneGraph(SETTINGS)
-    violation_engine = ViolationEngine(SETTINGS)
-    plate_recognizer = PlateRecognizer(SETTINGS)
-    evidence_generator = EvidenceGenerator(SETTINGS)
 
     # Layer 1: Adaptive Preprocessing
     start_time = time.time()
