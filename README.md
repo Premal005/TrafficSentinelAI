@@ -117,6 +117,18 @@ Standard vision pipelines fail in India due to high density, non-lane discipline
 * **Problem**: Triple riding is a critical violation on Indian two-wheelers, while auto-rickshaws have open cabins with mixed passenger counts.
 * **Solution**: The pipeline queries the scene graph for two-wheelers with $\ge 3$ `RIDES` edges, flagging them instantly.
 
+### 4. Session-State Persistent Sequential Notice IDs
+* **Problem**: Streamlit's page rerun model frequently re-imports modules and resets normal global python counters, causing notice IDs to duplicate and mix up in the Evidence Viewer.
+* **Solution**: The pipeline utilizes Streamlit's `st.session_state` to store and increment the global counter. This guarantees unique, sequential notice IDs across page navigation, hot reloads, and multi-file processing runs.
+
+### 5. Same-Frame Slider Adjustments & Overwrite Optimization
+* **Problem**: Adjusting sliders/parameters for the same image frame generates new notice IDs, leading to folder bloat and cluttering the database.
+* **Solution**: The engine detects when the same frame is reprocessed (comparing image hashes) and overwrites the existing record and folder rather than incrementing the counter, keeping the database lean and clean.
+
+### 6. One-Click UI Model Downloader
+* **Problem**: Model weights are too heavy for standard hackathon zip packages, leading to manual setup errors.
+* **Solution**: The dashboard implements a self-healing sidebar. If weights are missing, a prominent download button pulls them programmatically from Hugging Face with progress tracking and refreshes the system.
+
 ---
 
 ## 📂 Project Structure
@@ -188,18 +200,13 @@ source .venv/bin/activate # On Unix/macOS
 pip install -r requirements.txt
 ```
 
-### 2. Download Model Weights
-Because model weight files are large and exceed the 50 MB limit, they are excluded from the `submission.zip` package. You must download them to your local environment before running the system:
-
-1. **Download standard YOLOv11 & OCR weights** (for general vehicle/person detection):
-   ```bash
-   python models/download_models.py --all
-   ```
-
-2. **Download custom fine-tuned weights** (for specialized helmet and license plate detection from Hugging Face):
-   ```bash
-   python models/download_hf_models.py
-   ```
+### 2. Download Model Weights (If Using Zip Submission)
+* **GitHub Checkout**: If you cloned this repository directly from GitHub, all model weights and training datasets are pre-included and ready to go.
+* **Zip Submission Package**: Because model weight files are large, they are excluded from the `submission.zip` package to comply with the 50 MB size limit. To retrieve them:
+  1. **One-Click UI Downloader (Recommended)**: Simply launch the Streamlit app. The sidebar will automatically detect missing weights and display a button: **`📥 Download Weights from HF`**. Clicking this will download and load everything automatically!
+  2. **Command Line Downloader**: Alternatively, run the following scripts:
+     * Download general weights: `python models/download_models.py --all`
+     * Download fine-tuned weights: `python models/download_hf_models.py`
 
 ### 3. Run Integration Tests
 Verify that all 5 layers are integrated properly and that the edge heuristics function correctly:
