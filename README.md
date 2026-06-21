@@ -1,3 +1,13 @@
+---
+title: TrafficSentinelAI
+emoji: 🚦
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🚦 TrafficSentinel AI
 
 ## Automated Traffic Violation Detection & Classification for Mixed Traffic Environments
@@ -257,6 +267,4 @@ For centralized cloud deployments, the e-challans are packaged into clean JSON f
 
 ## 📄 License and Usage
 Developed for the **Flipkart Gridlock Hackathon 2.0**. Intellectual Property belongs to the submission team. All rights reserved.
-#   T r a f f i c S e n t i n e l A I 
- 
- 
+# TrafficSentinelAI
