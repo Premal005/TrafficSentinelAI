@@ -18,17 +18,6 @@ __pycache__/
 .coverage
 htmlcov/
 .ipynb_checkpoints/
-
-# Model weights
-*.pt
-*.pth
-models/weights/
-
-# Data & Datasets (heavy classification datasets)
-data/classifier_dataset/
-data/processed/
-data/raw/
-
 # Evidence & Logs (local run outputs)
 evidence/
 *.log
