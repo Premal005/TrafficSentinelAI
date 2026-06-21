@@ -1,3 +1,13 @@
+---
+title: TrafficSentinelAI
+emoji: 🚦
+colorFrom: blue
+colorTo: red
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🚦 TrafficSentinel AI
 
 ## Automated Traffic Violation Detection & Classification for Mixed Traffic Environments
