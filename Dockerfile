@@ -1,26 +1,25 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
-# Install system dependencies for OpenCV and other packages
+WORKDIR /code
+
+# Install system dependencies required for OpenCV/YOLO (Updated for newer Debian)
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
+    build-essential \
     libgl1 \
     libglib2.0-0 \
+    ffmpeg \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+COPY ./requirements.txt /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-# Copy requirements and install
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH
 
-# Copy source code
-COPY . .
+WORKDIR $HOME/app
+COPY --chown=user . $HOME/app
 
-# Expose the port specified in Hugging Face YAML header
-EXPOSE 7860
-
-# Run the Streamlit dashboard on port 7860
-CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0", "--server.enableXsrfProtection=false"]
