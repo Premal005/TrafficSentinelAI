@@ -1,0 +1,29 @@
+# Core dependencies
+ultralytics>=8.3.0          # YOLOv11 detection + tracking
+sahi>=0.11.18               # Slicing Aided Hyper Inference for small objects
+opencv-python>=4.9.0        # Image processing
+numpy>=1.24.0               # Numerical computing
+Pillow>=10.0.0              # Image I/O
+
+# OCR
+easyocr>=1.7.1              # License plate text extraction
+
+# Dashboard
+streamlit>=1.38.0           # Web dashboard framework
+plotly>=5.18.0              # Interactive charts
+networkx>=3.2               # Scene graph representation + visualization
+
+# ML / Metrics
+scikit-learn>=1.3.0         # Classification metrics
+torch>=2.1.0                # PyTorch (for YOLO backend)
+torchvision>=0.16.0         # Vision utilities
+
+# Utilities
+pyyaml>=6.0                 # Config file parsing
+tqdm>=4.66.0                # Progress bars
+python-dateutil>=2.8.0      # Date utilities
+fpdf2>=2.7.0                # PDF e-challan generation
+qrcode>=7.4                 # QR code for e-challan
+
+# Image enhancement
+scipy>=1.11.0               # Signal processing for deblurring
